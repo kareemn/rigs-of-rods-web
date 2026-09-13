@@ -47,6 +47,8 @@ npm run test:browser
 
 Set `CHROME_PATH` to a locally installed Chrome executable to test that browser instead of Playwright Chromium. The mobile project emulates an iPhone-sized viewport in Chromium; it is **not an iOS Safari hardware test**.
 
+Linux CI runs the suite with `ROR_TEST_RENDERER=webgl` because its software WebGPU device is unstable. WebGPU was verified locally on macOS Chrome; see [validation details](docs/VALIDATION.md). Add `?renderer=webgl` to the app URL to select the fallback explicitly.
+
 Release archives include the built site and the matching source tree. To share binaries elsewhere, provide the matching complete corresponding source and notices too; see [distribution notes](docs/LICENSING.md).
 
 ## Simulation boundaries

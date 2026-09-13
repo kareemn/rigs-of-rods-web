@@ -24,9 +24,11 @@ jobs:
       - run: bash scripts/test-native.sh
       - run: npm test
       - run: npx playwright install --with-deps chromium
-      - run: npm run test:browser
+      - name: Browser checks on Linux software WebGL
+        run: npm run test:browser
         env:
           TEST_PRODUCTION: "1"
+          ROR_TEST_RENDERER: webgl
       - run: bash scripts/package-release.sh
       - uses: actions/upload-artifact@v4
         with:

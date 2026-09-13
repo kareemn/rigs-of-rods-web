@@ -17,6 +17,7 @@ let renderer,
   ready = false,
   playing = false,
   pending = false,
+  graphicsFailed = false,
   startOnLoad = false,
   scrubbing = false,
   generation = 0,
@@ -44,6 +45,21 @@ function fail(message) {
   $("error").hidden = false;
   $("play").textContent = "▶ Play";
 }
+function stopGraphics(message) {
+  if (graphicsFailed) return;
+  graphicsFailed = true;
+  ready = false;
+  renderer?.setAnimationLoop(null);
+  fail(`${message} Your saved frames can still be exported. `);
+  $("play").disabled = true;
+  $("reset").disabled = true;
+  const retry = document.createElement("a");
+  const url = new URL(location.href);
+  url.searchParams.set("renderer", "webgl");
+  retry.href = url.href;
+  retry.textContent = "Reload using WebGL 2 (starts a fresh session)";
+  $("error").append(retry);
+}
 try {
   renderer = new THREE.WebGPURenderer({
     canvas,
@@ -53,6 +69,13 @@ try {
       new URLSearchParams(location.search).get("renderer") === "webgl",
   });
   await renderer.init();
+  const markDeviceLost = renderer.onDeviceLost.bind(renderer);
+  renderer.onDeviceLost = (info) => {
+    markDeviceLost(info);
+    stopGraphics("The browser lost its graphics device.");
+  };
+  renderer.onError = (info) =>
+    stopGraphics(`The graphics device reported an error: ${info.message}`);
   renderer.setPixelRatio(Math.min(devicePixelRatio, 2));
   renderer.shadowMap.enabled = true;
   renderer.toneMapping = THREE.ACESFilmicToneMapping;
@@ -97,6 +120,7 @@ try {
   scene.add(grid);
   let previousFit = 1;
   new ResizeObserver(() => {
+    if (graphicsFailed) return;
     const { width, height } = $("stage").getBoundingClientRect();
     renderer.setSize(width, height, false);
     camera.aspect = width / height;
@@ -122,6 +146,7 @@ try {
 worker.onerror = (event) =>
   fail(`Physics worker could not start: ${event.message}`);
 worker.onmessage = ({ data }) => {
+  if (graphicsFailed) return;
   if (data.type === "ready") {
     ready = true;
     loadScenario(createFromControls());
@@ -425,6 +450,7 @@ function showFrame(index) {
 }
 
 function animate(now) {
+  if (graphicsFailed) return;
   const elapsed = lastNow ? Math.min((now - lastNow) / 1000, 0.1) : 0;
   lastNow = now;
   frameCount++;
@@ -446,7 +472,11 @@ function animate(now) {
     }
   }
   controls.update();
-  renderer.render(scene, camera);
+  try {
+    renderer.render(scene, camera);
+  } catch (error) {
+    stopGraphics(`The renderer stopped: ${error.message}`);
+  }
 }
 function play() {
   if (!ready || !latest) return;

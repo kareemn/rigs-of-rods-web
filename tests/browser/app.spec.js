@@ -1,17 +1,18 @@
 // SPDX-License-Identifier: GPL-3.0-only
 import { test, expect } from "@playwright/test";
+const usesWebGL = (info) =>
+  info.project.name === "webgl-fallback" ||
+  process.env.ROR_TEST_RENDERER === "webgl";
 test("loads the real WASM worker, collides, resets, scrubs and exports a scenario", async ({
   page,
 }, info) => {
   const errors = [];
   page.on("pageerror", (e) => errors.push(e.message));
-  await page.goto(
-    info.project.name === "webgl-fallback" ? "/?renderer=webgl" : "/",
-  );
+  await page.goto(usesWebGL(info) ? "/?renderer=webgl" : "/");
   await expect(
     page.getByRole("button", { name: "▶ Play", exact: true }),
   ).toBeEnabled({ timeout: 30000 });
-  if (info.project.name === "webgl-fallback")
+  if (usesWebGL(info))
     expect(await page.evaluate(() => window.rorWebStatus().renderer)).toBe(
       "webgl",
     );
@@ -75,9 +76,7 @@ test("an in-flight WASM frame cannot undo pause, scrubbing or reset", async ({
       window.delayedFrames.splice(0).forEach((deliver) => deliver());
     };
   });
-  await page.goto(
-    info.project.name === "webgl-fallback" ? "/?renderer=webgl" : "/",
-  );
+  await page.goto(usesWebGL(info) ? "/?renderer=webgl" : "/");
   await expect(page.locator("#play")).toBeEnabled({ timeout: 30000 });
   await page.locator("#rate").selectOption("1");
   await page.locator("#play").click();

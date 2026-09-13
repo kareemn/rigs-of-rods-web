@@ -20,7 +20,7 @@ The engine's `PHYSICS_DT` value, 0.0005 seconds, comes from `source/main/physics
 - Ogre vectors and `fast_invSqrt` are replaced by a small POD vector and standard square root; near-zero length is guarded.
 - Node pointers become bounded array indices. Positions are world coordinates rather than actor-relative positions, limited by the JSON loader to a small world.
 - The per-beam cached minimum stress threshold is computed directly.
-- `canBreak` is supplied by the standalone host. It conservatively keeps at least two active beam connections at every node, not only collision-cab nodes.
+- `canBreak` is supplied by the standalone host. Breakage is allowed when both nodes had more than two active connections at the start of the timestep. This applies to every node, not only collision-cab nodes; simultaneous failures can reduce that count further.
 - No shocks, hydros, ropes, support beams, inter-actor beams, wheel detachers, detacher groups, buoyancy, sound, trigger hooks or debug-console integration.
 - `world.hpp` is a new host and contact implementation. It is not copied from or equivalent to the full RoR collision implementation.
 - No original vehicle model is imported or represented as calibrated.

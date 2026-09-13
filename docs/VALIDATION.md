@@ -30,7 +30,9 @@ Browser checks:
 
 The initial local browser run used Chrome on macOS with a WebGPU renderer. The mobile test is Chromium device emulation; physical iPhone/iOS Safari validation is still outstanding. A production-bundle smoke test and forced WebGL fallback test are also included before release.
 
-Linux CI explicitly selects Chromium's SwiftShader software Vulkan adapter for WebGPU. These tests check function, not GPU performance. Desktop and mobile-layout projects assert that WebGPU was actually selected; the fallback project asserts WebGL 2.
+Linux CI uses `ROR_TEST_RENDERER=webgl` and Chromium's SwiftShader software renderer. It tests desktop and mobile layouts, real WASM execution and playback races; it does not validate WebGPU. Software WebGPU on the initial Linux runner repeatedly lost its device (`Instance dropped in popErrorScope`), including with an explicit SwiftShader Vulkan adapter. That configuration remains unsupported by this release. The normal local desktop/mobile projects assert WebGPU; the fallback project (and every Linux CI project) asserts WebGL 2. Physical GPU performance cannot be inferred from CI.
+
+The app stops playback and offers an explicit WebGL reload if its graphics device is lost. Existing recorded frames remain available to export before reloading.
 
 ## What remains unproven
 
