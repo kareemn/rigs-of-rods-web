@@ -93,10 +93,17 @@ try {
   grid.material.transparent = true;
   grid.material.opacity = 0.4;
   scene.add(grid);
+  let previousFit = 1;
   new ResizeObserver(() => {
     const { width, height } = $("stage").getBoundingClientRect();
     renderer.setSize(width, height, false);
     camera.aspect = width / height;
+    const fit = Math.max(1, 1.15 / camera.aspect);
+    camera.position
+      .sub(controls.target)
+      .multiplyScalar(fit / previousFit)
+      .add(controls.target);
+    previousFit = fit;
     camera.updateProjectionMatrix();
   }).observe($("stage"));
   renderer.setAnimationLoop(animate);
