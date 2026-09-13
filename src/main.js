@@ -17,6 +17,8 @@ let renderer,
   ready = false,
   playing = false,
   pending = false,
+  startOnLoad = false,
+  scrubbing = false,
   generation = 0,
   accumulator = 0,
   lastNow = 0;
@@ -134,15 +136,18 @@ worker.onmessage = ({ data }) => {
     pending = false;
     latest = data;
     frames.push(data);
-    viewIndex = frames.length - 1;
-    applyFrame(data);
-    $("timeline").max = String(viewIndex);
-    $("timeline").value = String(viewIndex);
+    $("timeline").max = String(frames.length - 1);
+    if (data.type === "loaded") {
+      playing = startOnLoad;
+      startOnLoad = false;
+      $("play").textContent = playing ? "Ⅱ Pause" : "▶ Play";
+    }
+    // A completed batch is still recorded, but must not move a paused/scrubbed view.
+    if (playing || data.type === "loaded") showFrame(frames.length - 1);
     $("recorded").textContent = `${data.stats[0].toFixed(2)} s saved`;
     $("export-replay").disabled = frames.length < 2;
     $("play").disabled = false;
     $("reset").disabled = false;
-    if (data.type === "loaded") $("play").textContent = "▶ Play";
     if (data.stats[0] >= 3) {
       playing = false;
       accumulator = 0;
@@ -159,7 +164,7 @@ function createFromControls() {
     offset: Number($("offset").value),
   });
 }
-function loadScenario(input) {
+function loadScenario(input, autoplay = false) {
   if (!ready) return;
   try {
     scenario = validateScenario(input);
@@ -182,6 +187,8 @@ function loadScenario(input) {
     scenario.vehicles = [];
   playing = false;
   pending = true;
+  startOnLoad = autoplay;
+  scrubbing = false;
   generation++;
   accumulator = 0;
   frames = [];
@@ -410,6 +417,13 @@ function applyFrame(frame) {
     : "—";
 }
 
+function showFrame(index) {
+  if (!frames[index]) return;
+  viewIndex = index;
+  $("timeline").value = String(index);
+  applyFrame(frames[index]);
+}
+
 function animate(now) {
   const elapsed = lastNow ? Math.min((now - lastNow) / 1000, 0.1) : 0;
   lastNow = now;
@@ -434,22 +448,24 @@ function animate(now) {
   controls.update();
   renderer.render(scene, camera);
 }
-async function play() {
-  if (!ready || pending) return;
-  if (latest?.stats[0] >= 3 || viewIndex < frames.length - 1) {
-    loadScenario(scenario);
-    await waitLoaded();
+function play() {
+  if (!ready || !latest) return;
+  // Pausing must take effect even while the worker is computing a batch.
+  if (playing) {
+    playing = false;
+    accumulator = 0;
+    $("play").textContent = "▶ Play";
+    return;
   }
-  playing = !playing;
+  if (latest.stats[0] >= 3 || scrubbing) {
+    loadScenario(scenario, true);
+    return;
+  }
+  playing = true;
+  showFrame(frames.length - 1);
   lastNow = 0;
   accumulator = 0;
-  $("play").textContent = playing ? "Ⅱ Pause" : "▶ Play";
-}
-function waitLoaded() {
-  return new Promise((resolve) => {
-    const check = () => (pending ? setTimeout(check, 20) : resolve());
-    check();
-  });
+  $("play").textContent = "Ⅱ Pause";
 }
 $("play").onclick = play;
 $("reset").onclick = () => loadScenario(scenario);
@@ -467,10 +483,10 @@ for (const id of ["preset", "speed", "stiffness", "offset"])
   });
 $("timeline").oninput = () => {
   playing = false;
+  scrubbing = true;
   accumulator = 0;
   $("play").textContent = "↻ Replay";
-  viewIndex = Number($("timeline").value);
-  if (frames[viewIndex]) applyFrame(frames[viewIndex]);
+  showFrame(Number($("timeline").value));
 };
 function download(name, data) {
   const blob = new Blob([JSON.stringify(data)], { type: "application/json" }),
@@ -543,6 +559,8 @@ window.rorWebStatus = () => ({
   pending,
   frameCount,
   frames: frames.length,
+  viewIndex,
+  viewedTime: frames[viewIndex]?.stats[0] || 0,
   time: latest?.stats[0] || 0,
   contacts: latest?.stats[3] || 0,
   yielded: latest?.stats[4] || 0,

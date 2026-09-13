@@ -16,7 +16,6 @@ self.onmessage = async ({ data }) => {
       postMessage({ type: "ready" });
     } else if (data.type === "load") {
       generation = data.generation;
-      generation = data.generation;
       scenario = validateScenario(data.scenario);
       engine._reset_world();
       for (const n of scenario.nodes)
@@ -46,6 +45,7 @@ self.onmessage = async ({ data }) => {
       engine._step_world(0);
       sendFrame("loaded", 0);
     } else if (data.type === "step") {
+      if (data.generation !== generation) return;
       const start = performance.now();
       if (engine._step_world(data.ticks) < 0)
         throw new Error("Physics timestep exceeds allowed batch");

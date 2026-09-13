@@ -10,7 +10,21 @@ export default defineConfig({
     baseURL: url,
     headless: true,
     launchOptions: {
-      args: ["--enable-unsafe-webgpu", "--enable-unsafe-swiftshader"],
+      args: [
+        "--enable-unsafe-webgpu",
+        "--enable-unsafe-swiftshader",
+        // CI has no physical GPU. Select Chromium's software Vulkan adapter
+        // explicitly instead of the runner's unreliable default Vulkan device.
+        ...(process.platform === "linux"
+          ? [
+              "--enable-features=Vulkan",
+              "--use-angle=vulkan",
+              "--use-vulkan=swiftshader",
+              "--use-webgpu-adapter=swiftshader",
+              "--disable-vulkan-surface",
+            ]
+          : []),
+      ],
       ...(process.env.CHROME_PATH
         ? { executablePath: process.env.CHROME_PATH }
         : {}),

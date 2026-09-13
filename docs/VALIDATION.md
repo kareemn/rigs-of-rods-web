@@ -25,9 +25,12 @@ Browser checks:
 - Load the real WASM worker and renderer.
 - Play through contact and verify permanent deformation.
 - Pause, scrub back to the undeformed state, reset, export scenario data.
+- Delay real worker frame delivery to verify that pause/scrub selection and a newer reset survive late replies.
 - Check page errors and horizontal overflow at desktop and mobile viewport sizes.
 
 The initial local browser run used Chrome on macOS with a WebGPU renderer. The mobile test is Chromium device emulation; physical iPhone/iOS Safari validation is still outstanding. A production-bundle smoke test and forced WebGL fallback test are also included before release.
+
+Linux CI explicitly selects Chromium's SwiftShader software Vulkan adapter for WebGPU. These tests check function, not GPU performance. Desktop and mobile-layout projects assert that WebGPU was actually selected; the fallback project asserts WebGL 2.
 
 ## What remains unproven
 
