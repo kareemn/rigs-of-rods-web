@@ -1,0 +1,169 @@
+<!doctype html>
+<!-- SPDX-License-Identifier: GPL-3.0-only -->
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta
+      name="viewport"
+      content="width=device-width,initial-scale=1,viewport-fit=cover"
+    />
+    <meta name="theme-color" content="#101b25" />
+    <title>Rigs of Rods Web · Deformation lab</title>
+  </head>
+  <body>
+    <header>
+      <a class="brand" href="./"
+        ><span class="mark">R/W</span
+        ><span
+          >Rigs of Rods <b>Web</b
+          ><small>INDEPENDENT EXPERIMENTAL PORT</small></span
+        ></a
+      ><a
+        class="source"
+        href="https://github.com/kareemn/rigs-of-rods-web"
+        target="_blank"
+        rel="noopener"
+        >Source · GPL v3 ↗</a
+      >
+    </header>
+    <main>
+      <section class="intro">
+        <div class="eyebrow">OPEN SOURCE / LOCAL SIMULATION</div>
+        <h1>Deformation lab<span>0.1</span></h1>
+        <p>Explore how a vehicle structure bends, yields and breaks.</p>
+      </section>
+      <section class="workspace" aria-label="Simulation workspace">
+        <div class="playbar">
+          <button id="play" class="primary" disabled>Loading physics…</button
+          ><button id="reset" disabled title="Reset (R)">↺ Reset</button
+          ><label class="speed-label"
+            >Playback<select id="rate">
+              <option value="0.25">0.25×</option>
+              <option value="0.5" selected>0.5×</option>
+              <option value="1">1×</option>
+            </select></label
+          ><span id="clock">0.000 s</span
+          ><span class="renderer" id="renderer">Starting renderer</span>
+        </div>
+        <div class="stage" id="stage">
+          <canvas
+            id="canvas"
+            aria-label="Interactive 3D crash simulation"
+          ></canvas>
+          <div class="scene-label">
+            <span id="scene-name">Offset frontal</span
+            ><small>BLUE · VEHICLE A &nbsp; / &nbsp; AMBER · VEHICLE B</small>
+          </div>
+          <div class="legend">
+            <span></span> Elastic <span></span> Yielded <span></span> Broken
+          </div>
+          <div class="gesture">Drag to orbit · Scroll or pinch to zoom</div>
+          <div class="error" id="error" role="alert" hidden></div>
+        </div>
+        <div class="timeline">
+          <label for="timeline">Replay</label
+          ><input
+            id="timeline"
+            aria-label="Scrub recorded simulation"
+            type="range"
+            min="0"
+            max="0"
+            step="1"
+            value="0"
+          /><span id="recorded">No frames yet</span>
+        </div>
+        <div class="metrics">
+          <div>
+            <span>PERMANENTLY CHANGED BEAMS</span
+            ><strong id="yielded">0</strong>
+          </div>
+          <div><span>BROKEN BEAMS</span><strong id="broken">0</strong></div>
+          <div><span>CONTACT EVENTS</span><strong id="contacts">0</strong></div>
+          <div>
+            <span>PHYSICS BATCH</span
+            ><strong id="cost">—<small> ms</small></strong>
+          </div>
+        </div>
+      </section>
+      <aside class="settings">
+        <div class="eyebrow">SCENARIO</div>
+        <h2>Set up an impact</h2>
+        <label
+          >Configuration<select id="preset">
+            <option value="offset">Offset frontal</option>
+            <option value="headon">Full frontal</option>
+            <option value="side">Side impact</option>
+            <option value="barrier">Rigid barrier</option>
+          </select></label
+        >
+        <label
+          >Initial speed <output id="speed-value">35 km/h</output
+          ><input id="speed" type="range" min="5" max="65" step="5" value="35"
+        /></label>
+        <p class="hint">
+          Applied to both vehicles in frontal cases. Vehicle B is stationary in
+          the side-impact case.
+        </p>
+        <label
+          >Structural stiffness <output id="stiffness-value">1.00×</output
+          ><input
+            id="stiffness"
+            type="range"
+            min="0.5"
+            max="1.4"
+            step="0.05"
+            value="1"
+        /></label>
+        <label
+          >Frontal offset <output id="offset-value">0.75 m</output
+          ><input
+            id="offset"
+            type="range"
+            min="0"
+            max="1.6"
+            step="0.05"
+            value="0.75"
+        /></label>
+        <label class="check"
+          ><input id="wireframe" type="checkbox" checked /> Show structural
+          beams <kbd>W</kbd></label
+        >
+        <div class="divider"></div>
+        <div class="eyebrow">PORTABLE FILES</div>
+        <div class="file-buttons">
+          <button id="export">Export scenario</button
+          ><button id="import">Import scenario</button
+          ><button id="export-replay" disabled>Export recorded motion</button>
+        </div>
+        <input type="file" accept="application/json,.json" id="file" hidden />
+        <p class="hint">
+          JSON files stay on this device. No uploads, accounts or external
+          simulation service.
+        </p>
+        <details>
+          <summary>What this prototype models</summary>
+          <p>
+            RoR-derived normal-beam forces, plastic deformation and breaking.
+            New experimental contact handling between structural nodes and
+            triangle surfaces. Synthetic, uncalibrated vehicle cages with a
+            reinforced cabin.
+          </p>
+          <p>
+            Gravity and tire dynamics are disabled in the demos to isolate
+            impact behavior. Wheels are visual markers. This is not the complete
+            RoR engine or a validated reconstruction tool.
+          </p>
+        </details>
+        <p class="shortcuts"><kbd>Space</kbd> Play/pause <kbd>R</kbd> Reset</p>
+      </aside>
+      <footer>
+        <span>Fixed 2,000 Hz physics · WASM worker · Three.js</span
+        ><span
+          >Independent project. Not affiliated with Rigs of Rods or
+          BeamNG.</span
+        >
+      </footer>
+    </main>
+    <script type="module" src="/src/main.js"></script>
+  </body>
+</html>

@@ -1,0 +1,41 @@
+name: Build and test browser port
+on:
+  push:
+    branches: [main]
+    tags: ["v*"]
+  pull_request:
+permissions:
+  contents: read
+jobs:
+  browser-port:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "24"
+          cache: npm
+      - uses: mymindstorm/setup-emsdk@v14
+        with:
+          version: "6.0.9"
+          actions-cache-folder: emsdk-cache
+      - run: npm ci
+      - run: npm run build
+      - run: bash scripts/test-native.sh
+      - run: npm test
+      - run: npx playwright install --with-deps chromium
+      - run: npm run test:browser
+        env:
+          TEST_PRODUCTION: "1"
+      - run: bash scripts/package-release.sh
+      - uses: actions/upload-artifact@v4
+        with:
+          name: standalone-browser-port
+          path: |
+            build/rigs-of-rods-web-site.tar.gz
+            build/rigs-of-rods-web-source.tar.gz
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: browser-test-results
+          path: test-results/

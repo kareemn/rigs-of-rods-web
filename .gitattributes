@@ -1,0 +1,5 @@
+* text=auto eol=lf
+# Preserve upstream audit sources and license byte-for-byte, including existing whitespace.
+upstream/** -text -whitespace
+LICENSE -text -whitespace
+*.png binary

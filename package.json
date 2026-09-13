@@ -1,0 +1,28 @@
+{
+  "name": "rigs-of-rods-web",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "license": "GPL-3.0-only",
+  "description": "Experimental standalone browser port of Rigs of Rods normal-beam physics, with WASM and Three.js",
+  "scripts": {
+    "dev": "vite",
+    "build:wasm": "bash scripts/build-wasm.sh",
+    "build": "npm run build:wasm && vite build",
+    "build:web": "vite build",
+    "preview": "vite preview --host 127.0.0.1",
+    "test": "node --test tests/*.test.js",
+    "test:browser": "playwright test"
+  },
+  "dependencies": {
+    "three": "0.186.0"
+  },
+  "devDependencies": {
+    "@playwright/test": "1.63.0",
+    "prettier": "3.6.2",
+    "vite": "8.3.0"
+  },
+  "engines": {
+    "node": ">=22.12"
+  }
+}
